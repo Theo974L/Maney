@@ -1,0 +1,40 @@
+@file:Suppress("DEPRECATION")
+
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+}
+
+android {
+    namespace = "com.example.theolaforgeeval.features.client.home.api"
+    compileSdk = 36
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+}
+
+dependencies {
+    implementation(libs.room.ktx)
+    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.bundles.koin)
+    implementation(libs.bundles.ktor)
+
+    implementation(libs.kotlinx.coroutines.android)
+
+
+    implementation(project(":features:client:home:domain"))
+    implementation(project(":features:client:home:data"))
+    implementation(project(":features:client:home:ui"))
+
+}

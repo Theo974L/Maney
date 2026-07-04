@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Primary (bleu confiance / fintech) -->
+    <color name="primary">#2F6BFF</color>
+    <color name="primary_dark">#1E4ED8</color>
+    <color name="primary_light">#6FA0FF</color>
+
+    <!-- Secondary (accent vert finance / positif) -->
+    <color name="secondary">#22C55E</color>
+    <color name="secondary_dark">#16A34A</color>
+    <color name="secondary_light">#86EFAC</color>
+
+    <!-- Accent (actions importantes / highlights) -->
+    <color name="accent">#F59E0B</color>
+
+    <!-- Status -->
+    <color name="success">#22C55E</color>
+    <color name="warning">#F59E0B</color>
+    <color name="error">#EF4444</color>
+
+    <!-- Neutrals (Material-like clean UI) -->
+    <color name="background">#0F172A</color>
+    <color name="surface">#111827</color>
+    <color name="surface_variant">#1F2937</color>
+
+    <color name="on_background">#F8FAFC</color>
+    <color name="on_surface">#E5E7EB</color>
+    <color name="on_surface_variant">#9CA3AF</color>
+
+    <!-- Basic -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+</resources>

@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">SpaceBooking</string>
+
+    <string name="home_title">Init Projet</string>
+
+    <string name="bienvenue">Money savers</string>
+    <string name="desc">Gère ton argent facilement : crée des catégories, effectue des transferts et planifie tes dépenses en toute simplicité.</string>
+    <string name="titre">Mes catégories</string>
+
+    <string name="button_text">Rechercher</string>
+    <string name="button_text2">Page details</string>
+
+</resources>

@@ -4,7 +4,9 @@ import androidx.room.Entity;
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey;
+import kotlinx.serialization.Serializable
 
+@Serializable
 @Entity(
     tableName = "transaction_action",
     foreignKeys = [
@@ -36,7 +38,7 @@ data class TransactionActionEntity(
     val dateInfo: Long,
     val amount: String,
     val amountColor: Long,
-    val amountInt: Int = 0,
+    val amountValue: Double = 0.0,
     val date: String,
 
     val categorySourceId: Int,

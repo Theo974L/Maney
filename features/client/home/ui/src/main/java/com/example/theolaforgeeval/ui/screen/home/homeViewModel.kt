@@ -54,7 +54,9 @@ import com.example.theolaforgeeval.repository.CategoryRepository
 import com.example.theolaforgeeval.repository.TransactionRepository
 import com.example.theolaforgeeval.ui.utils.Translate
 import com.example.theolaforgeeval.useCases.DeleteCategoryUseCase
+import com.example.theolaforgeeval.useCases.GenerateDueRecurringTransactionsUseCase
 import com.example.theolaforgeeval.useCases.GetCategoryTotalUseCase
+import com.example.theolaforgeeval.useCases.GetMonthlyCategoryBreakdownUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -72,7 +74,9 @@ class HomeViewModel(
     private val categoryRepository: CategoryRepository,
     private val deleteCategoryUseCase: DeleteCategoryUseCase,
     private val transactionRepository: TransactionRepository,
-    private val getCategoryTotalUseCase: GetCategoryTotalUseCase
+    private val getCategoryTotalUseCase: GetCategoryTotalUseCase,
+    private val generateDueRecurringTransactionsUseCase: GenerateDueRecurringTransactionsUseCase,
+    private val getMonthlyCategoryBreakdownUseCase: GetMonthlyCategoryBreakdownUseCase
 
     ) : ViewModel() {
 
@@ -83,6 +87,9 @@ class HomeViewModel(
     val events = _uiEvents.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            generateDueRecurringTransactionsUseCase()
+        }
         observeCategories()
     }
 
@@ -90,17 +97,22 @@ class HomeViewModel(
         viewModelScope.launch {
             getCategoryTotalUseCase()
                 .collect { categories ->
+                val mapped = categories.map { category ->
+                    Categorie(
+                        entity = category,
+                        nom = category.name,
+                        color = Color(category.color.toULong()),
+                        icon = Translate.iconFromName(category.iconName),
+                        currentPrice = category.currentPrice,
+                        futurePrice = category.futurePrice,
+                        goalAmount = category.goalAmount,
+                        imagePath = category.imagePath
+                    )
+                }
+
                 _uiState.value = _uiState.value.copy(
-                    categories = categories.map { category ->
-                        Categorie(
-                            entity = category,
-                            nom = category.name,
-                            color = Color(category.color.toULong()),
-                            icon = Translate.iconFromName(category.iconName),
-                            currentPrice = category.currentPrice,
-                            futurePrice = category.futurePrice
-                        )
-                    },
+                    categories = mapped.filter { !it.isGoal },
+                    goals = mapped.filter { it.isGoal },
                     isLoading = false
                 )
             }
@@ -118,7 +130,7 @@ class HomeViewModel(
                         amountColor = Color(it.amountColor.toULong()),
                         date = it.date,
                         dateInfo = it.dateInfo,
-                        amountInt = it.amountInt,
+                        amountValue = it.amountValue,
                         categorySourceId = it.categorySourceId,
                         categoryDestId = it.categoryDestId
                     )
@@ -146,7 +158,7 @@ class HomeViewModel(
                         amountColor = Color(it.amountColor.toULong()),
                         date = it.date,
                         dateInfo = it.dateInfo,
-                        amountInt = it.amountInt,
+                        amountValue = it.amountValue,
                         categorySourceId = it.categorySourceId,
                         categoryDestId = it.categoryDestId
                     )
@@ -162,20 +174,20 @@ class HomeViewModel(
 
             transactionRepository.getTransactions().collect { transaction ->
                 val today = System.currentTimeMillis()
-                var sumOfPrice = 0
+                var sumOfPrice = 0.0
                 val nowPlusSevenDay = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
-                var sumOfFuturePrice = 0
+                var sumOfFuturePrice = 0.0
 
 
                 transaction.forEach { t ->
                     if (t.dateInfo < today) {
-                        sumOfPrice += t.amountInt
+                        sumOfPrice += t.amountValue
                     }
                 }
 
                 transaction.forEach { t ->
                     if (t.dateInfo < nowPlusSevenDay){
-                        sumOfFuturePrice += t.amountInt
+                        sumOfFuturePrice += t.amountValue
                     }
                 }
 
@@ -187,8 +199,13 @@ class HomeViewModel(
             }
         }
 
-
-
+        viewModelScope.launch {
+            getMonthlyCategoryBreakdownUseCase().collect { breakdown ->
+                _uiState.value = _uiState.value.copy(
+                    monthlyBreakdown = breakdown
+                )
+            }
+        }
 
 
     }
@@ -200,17 +217,13 @@ class HomeViewModel(
                     deleteCategoryUseCase(action.categorie.entity)
                 }
             }
+            is OnGoalCelebrated -> {
+                viewModelScope.launch {
+                    categoryRepository.updateCategory(action.categorie.entity.copy(celebrated = true))
+                }
+            }
         }
     }
 
 }
-
-//val nowPlusSevenDay = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
-//var sumOfFuturePrice = 0
-//
-//transaction.forEach { t ->
-//    if (t.dateInfo < nowPlusSevenDay){
-//        sumOfFuturePrice += t.amountInt
-//    }
-//}
 

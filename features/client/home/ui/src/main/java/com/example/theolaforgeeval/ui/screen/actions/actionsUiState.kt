@@ -24,8 +24,12 @@ data class ActionsUiState(
 
     val destinationCategory: CategoryEntity? = null,
 
-    val categories: List<CategoryEntity> = emptyList()
-)
+    val categories: List<CategoryEntity> = emptyList(),
+
+    val editingTransactionId: Int? = null
+) {
+    val isEditMode: Boolean get() = editingTransactionId != null
+}
 
 sealed interface ActionsUiAction {
 

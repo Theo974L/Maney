@@ -14,12 +14,21 @@ interface CategoryDao {
     @Query("SELECT * FROM categories")
     fun getAll(): Flow<List<CategoryEntity>>
 
+    @Query("SELECT * FROM categories WHERE id = :id")
+    fun getById(id: Int): Flow<CategoryEntity?>
+
     @Insert
     suspend fun insert(category: CategoryEntity)
+
+    @Insert
+    suspend fun insertAll(categories: List<CategoryEntity>)
+
+    @Update
+    suspend fun update(category: CategoryEntity)
 
     @Delete
     suspend fun delete(category: CategoryEntity)
 
-    @Query("UPDATE categories SET currentPrice = :currentPrice and futurePrice = :futurePrice WHERE id = :id")
-    suspend fun updateCurrentPrice(id: Int, currentPrice: Int, futurePrice :Int)
+    @Query("DELETE FROM categories")
+    suspend fun deleteAll()
 }

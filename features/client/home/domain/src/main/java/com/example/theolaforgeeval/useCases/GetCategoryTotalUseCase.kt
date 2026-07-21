@@ -29,36 +29,36 @@ class GetCategoryTotalUseCase(
                 val transfertPlus = transactions.filter {
                     it.categoryDestId == category.id
                 }.sumOf {
-                    it.amountInt
+                    it.amountValue
                 }
 
                 val transfertMoins = transactions.filter {
                     it.categorySourceId == category.id && it.title == "Transfert"
                 }.sumOf {
-                    it.amountInt
+                    it.amountValue
                 }
 
                 val total = transactions
                     .filter { it.categorySourceId == category.id && it.title != "Transfert" }
-                    .sumOf { it.amountInt }
+                    .sumOf { it.amountValue }
 
                 val finalTotal = total + transfertPlus - transfertMoins
 
                 val finalTotalPrevisionPlus = transactionFuture.filter {
                     it.categoryDestId == category.id
                 }.sumOf {
-                    it.amountInt
+                    it.amountValue
                 }
 
                 val finalTotalPrevisionMoins = transactionFuture.filter {
                     it.categorySourceId == category.id && it.title == "Transfert"
                 }.sumOf {
-                    it.amountInt
+                    it.amountValue
                 }
 
                 val TotalPrevision = transactionFuture
                     .filter { it.categorySourceId == category.id && it.title != "Transfert" }
-                    .sumOf { it.amountInt }
+                    .sumOf { it.amountValue }
 
                 val finalTotalPrevision = TotalPrevision + finalTotalPrevisionPlus - finalTotalPrevisionMoins
 

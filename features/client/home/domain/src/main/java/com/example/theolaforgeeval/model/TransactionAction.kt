@@ -12,7 +12,7 @@ data class TransactionAction(
     val date: String,
 
     val dateInfo: Long,
-    val amountInt: Int = 0,
+    val amountValue: Double = 0.0,
 
     val categorySourceId: Int,
 

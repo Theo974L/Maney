@@ -8,9 +8,12 @@ import kotlinx.coroutines.flow.Flow
 // Pour l'injection de dependance
 interface CategoryRepository {
     fun getCategories() : Flow<List<CategoryEntity>>
-//    fun deleteCategories() : List<CategoryEntity>
+    fun getCategoryById(id: Int): Flow<CategoryEntity?>
+
     suspend fun insertCategories(categoryEntity: CategoryEntity)
+    suspend fun insertAllCategories(categories: List<CategoryEntity>)
+    suspend fun updateCategory(categoryEntity: CategoryEntity)
 
     suspend fun deleteCategories(categoryEntity: CategoryEntity)
-    suspend fun updateCurrentPrice(id: Int, currentPrice: Int, futurePrice :Int)
+    suspend fun deleteAllCategories()
 }

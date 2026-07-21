@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,20 +38,22 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.theolaforgeeval.core.ui.utils.formatEuro
 
 @Composable
 fun PriceInfoCard(
     icon: ImageVector,
     iconBackground: Color,
-    currentPrice: Int,
-    futurePrice: Int,
+    currentPrice: Double,
+    futurePrice: Double,
     title: String,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null
 ) {
 
     val diff = futurePrice - currentPrice
-    val isUp = diff >= 0
+    val isUp = diff >= 0.0
 
     var visible by remember { mutableStateOf(false) }
 
@@ -74,7 +77,8 @@ fun PriceInfoCard(
             .graphicsLayer {
                 this.alpha = alpha
                 translationY = offsetY.toPx()
-            },
+            }
+            .let { m -> if (onClick != null) m.clickable { onClick() } else m },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -133,7 +137,7 @@ fun PriceInfoCard(
                 Spacer(modifier = Modifier.height(2.dp))
 
                 Text(
-                    text = "€ $currentPrice",
+                    text = currentPrice.formatEuro(),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -147,7 +151,7 @@ fun PriceInfoCard(
                 ) {
 
                     Text(
-                        text = "Prévision € $futurePrice",
+                        text = "Prévision ${futurePrice.formatEuro()}",
                         style = MaterialTheme.typography.labelSmall.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -167,7 +171,7 @@ fun PriceInfoCard(
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
-                            text = if (isUp) "+$diff €" else "$diff €",
+                            text = if (isUp) "+${diff.formatEuro()}" else diff.formatEuro(),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = if (isUp)
@@ -180,12 +184,14 @@ fun PriceInfoCard(
                 }
             }
 
-            IconButton(onClick = onDelete) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Supprimer",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            if (onDelete != null) {
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Supprimer",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

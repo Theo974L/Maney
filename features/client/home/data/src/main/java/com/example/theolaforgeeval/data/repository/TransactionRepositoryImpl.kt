@@ -1,11 +1,7 @@
 package com.example.theolaforgeeval.data.repository
 
-import android.util.Log
-import com.example.theolaforgeeval.data.local.dao.CategoryDao
 import com.example.theolaforgeeval.data.local.dao.TransactionDao
-import com.example.theolaforgeeval.model.CategoryEntity
 import com.example.theolaforgeeval.model.TransactionActionEntity
-import com.example.theolaforgeeval.repository.CategoryRepository
 import com.example.theolaforgeeval.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 
@@ -16,13 +12,28 @@ class TransactionRepositoryImpl(
         return dao.getAll()
     }
 
-    override suspend fun insertTransaction(transactionEntity: TransactionActionEntity) {
-        Log.d("REPO", "INSERT DB = $transactionEntity")
-        return dao.insert(transactionEntity)
+    override fun getTransactionById(id: Int): Flow<TransactionActionEntity?> {
+        return dao.getById(id)
     }
-    //
+
+    override suspend fun insertTransaction(transactionEntity: TransactionActionEntity) {
+        dao.insert(transactionEntity)
+    }
+
+    override suspend fun insertAllTransactions(transactions: List<TransactionActionEntity>) {
+        dao.insertAll(transactions)
+    }
+
+    override suspend fun updateTransaction(transactionEntity: TransactionActionEntity) {
+        dao.update(transactionEntity)
+    }
+
     override suspend fun deleteTransaction(transactionEntity: TransactionActionEntity) {
         dao.delete(transactionEntity)
+    }
+
+    override suspend fun deleteAllTransactions() {
+        dao.deleteAll()
     }
 
     override fun getPastTransactions(timestamp: Long) : Flow<List<TransactionActionEntity>> {
@@ -33,6 +44,7 @@ class TransactionRepositoryImpl(
         return dao.getFutureTransactions(timestamp,limite)
     }
 
-
-
+    override fun getTransactionsForCategory(categoryId: Int): Flow<List<TransactionActionEntity>> {
+        return dao.getTransactionsForCategory(categoryId)
+    }
 }

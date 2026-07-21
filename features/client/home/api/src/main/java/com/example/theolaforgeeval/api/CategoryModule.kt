@@ -10,11 +10,11 @@ import com.example.theolaforgeeval.data.repository.CategoryRepositoryImpl
 import com.example.theolaforgeeval.data.repository.TransactionRepositoryImpl
 import com.example.theolaforgeeval.repository.CategoryRepository
 import com.example.theolaforgeeval.repository.TransactionRepository
-import com.example.theolaforgeeval.ui.screen.Add.AddViewModel
 import com.example.theolaforgeeval.ui.screen.actions.ActionsViewModel
 import com.example.theolaforgeeval.ui.screen.home.HomeViewModel
 import com.example.theolaforgeeval.useCases.DeleteCategoryUseCase
 import com.example.theolaforgeeval.useCases.GetCategoryTotalUseCase
+import com.example.theolaforgeeval.useCases.GetMonthlyCategoryBreakdownUseCase
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -37,6 +37,10 @@ val CategoryModule = module {
 
     single {
         GetCategoryTotalUseCase(get(),get())
+    }
+
+    single {
+        GetMonthlyCategoryBreakdownUseCase(get(), get())
     }
 
 }

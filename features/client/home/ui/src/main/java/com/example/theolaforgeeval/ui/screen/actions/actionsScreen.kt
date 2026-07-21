@@ -1,10 +1,10 @@
 package com.example.theolaforgeeval.ui.screen.actions
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,9 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AttachMoney
@@ -47,21 +46,34 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.theolaforgeeval.core.ui.component.BottomNavigationBar
-import com.example.theolaforgeeval.core.ui.component.PriceInfoCard
+import com.example.theolaforgeeval.core.ui.component.SegmentedOption
+import com.example.theolaforgeeval.core.ui.component.SegmentedToggle
+import com.example.theolaforgeeval.core.ui.utils.formatEuro
 import com.example.theolaforgeeval.model.CategoryEntity
-import com.example.theolaforgeeval.ui.utils.Translate
+import com.example.theolaforgeeval.ui.component.CategoryPickerSheet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun ActionsScreen(viewModel: ActionsViewModel, navController: NavController) {
+fun ActionsScreen(
+    viewModel: ActionsViewModel,
+    navController: NavController,
+    transactionId: Int? = null
+) {
     val uiState = viewModel.state.collectAsState().value
     val snackBarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(transactionId) {
+        if (transactionId != null) {
+            viewModel.loadForEdit(transactionId)
+        }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
@@ -80,11 +92,8 @@ fun ActionsScreen(viewModel: ActionsViewModel, navController: NavController) {
                     }
                 }
                 is ActionsUiEvent.Back -> { navController.navigate("home") }
-
-
             }
         }
-
     }
 
     Actions(
@@ -136,10 +145,20 @@ fun ActionsContent(
     var showSourcePicker by remember { mutableStateOf(false) }
     var showDestPicker by remember { mutableStateOf(false) }
 
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
+
+    val alpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, label = "alpha")
+    val offsetY by animateDpAsState(targetValue = if (visible) 0.dp else 12.dp, label = "offset")
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(20.dp)
+            .graphicsLayer {
+                this.alpha = alpha
+                translationY = offsetY.toPx()
+            },
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
@@ -153,7 +172,7 @@ fun ActionsContent(
         ) {
             Column(Modifier.padding(20.dp)) {
                 Text(
-                    "Nouvelle opération",
+                    if (uiState.isEditMode) "Modifier l'opération" else "Nouvelle opération",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -163,41 +182,26 @@ fun ActionsContent(
         }
 
         // TYPE SELECTOR
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-
-            ActionChip(
-                modifier = Modifier.weight(1f),
-                title = "Ajout",
-                icon = Icons.Default.AddCircle,
-                color = Color(0xFF22C55E),
-                selected = uiState.type == ActionType.ADD
-            ) {
-                onAction(ActionsUiAction.OnTypeSelected(ActionType.ADD))
+        SegmentedToggle(
+            options = listOf(
+                SegmentedOption("Ajout", Icons.Default.AddCircle, Color(0xFF22C55E)),
+                SegmentedOption("Retrait", Icons.Default.RemoveCircle, Color(0xFFEF4444)),
+                SegmentedOption("Transfert", Icons.Default.SwapHoriz, Color(0xFFF59E0B))
+            ),
+            selectedIndex = when (uiState.type) {
+                ActionType.ADD -> 0
+                ActionType.WITHDRAW -> 1
+                ActionType.TRANSFER -> 2
+            },
+            onSelect = { index ->
+                val type = when (index) {
+                    0 -> ActionType.ADD
+                    1 -> ActionType.WITHDRAW
+                    else -> ActionType.TRANSFER
+                }
+                onAction(ActionsUiAction.OnTypeSelected(type))
             }
-
-            ActionChip(
-                modifier = Modifier.weight(1f),
-                title = "Retrait",
-                icon = Icons.Default.RemoveCircle,
-                color = Color(0xFFEF4444),
-                selected = uiState.type == ActionType.WITHDRAW
-            ) {
-                onAction(ActionsUiAction.OnTypeSelected(ActionType.WITHDRAW))
-            }
-
-            ActionChip(
-                modifier = Modifier.weight(1f),
-                title = "Transfert",
-                icon = Icons.Default.SwapHoriz,
-                color = Color(0xFFF59E0B),
-                selected = uiState.type == ActionType.TRANSFER
-            ) {
-                onAction(ActionsUiAction.OnTypeSelected(ActionType.TRANSFER))
-            }
-        }
+        )
 
         // SOURCE CATEGORY
         CategoryBox(
@@ -229,11 +233,14 @@ fun ActionsContent(
             leadingIcon = {
                 Icon(Icons.Default.AttachMoney, null)
             },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp)
         )
 
         // SUMMARY CARD
+        val amount = uiState.amount.trim().replace(',', '.').toDoubleOrNull() ?: 0.0
+
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
@@ -252,11 +259,55 @@ fun ActionsContent(
 
                 Text(
                     when (uiState.type) {
-                        ActionType.ADD -> "+${uiState.amount} €"
-                        ActionType.WITHDRAW -> "-${uiState.amount} €"
+                        ActionType.ADD -> "+ ${amount.formatEuro()}"
+                        ActionType.WITHDRAW -> "- ${amount.formatEuro()}"
                         ActionType.TRANSFER -> "${uiState.sourceCategory?.name ?: "?"} → ${uiState.destinationCategory?.name ?: "?"}"
                     }
                 )
+
+                val source = uiState.sourceCategory
+                val dest = uiState.destinationCategory
+
+                if (amount > 0.0) {
+                    Spacer(Modifier.height(10.dp))
+
+                    when (uiState.type) {
+                        ActionType.ADD -> {
+                            if (source != null) {
+                                Text(
+                                    text = "Nouveau solde : ${(source.currentPrice + amount).formatEuro()}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        ActionType.WITHDRAW -> {
+                            if (source != null) {
+                                Text(
+                                    text = "Nouveau solde : ${(source.currentPrice - amount).formatEuro()}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        ActionType.TRANSFER -> {
+                            if (source != null) {
+                                Text(
+                                    text = "${source.name} : ${(source.currentPrice - amount).formatEuro()}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (dest != null) {
+                                Text(
+                                    text = "${dest.name} : ${(dest.currentPrice + amount).formatEuro()}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -280,7 +331,7 @@ fun ActionsContent(
 
     // PICKER SOURCE
     if (showSourcePicker) {
-        CategoryPicker(
+        CategoryPickerSheet(
             categories = uiState.categories,
             onSelect = {
                 onAction(ActionsUiAction.OnSourceCategorySelected(it))
@@ -292,7 +343,7 @@ fun ActionsContent(
 
     // PICKER DEST
     if (showDestPicker) {
-        CategoryPicker(
+        CategoryPickerSheet(
             categories = uiState.categories,
             onSelect = {
                 onAction(ActionsUiAction.OnDestinationCategorySelected(it))
@@ -300,41 +351,6 @@ fun ActionsContent(
             },
             onDismiss = { showDestPicker = false }
         )
-    }
-}
-
-@Composable
-fun ActionChip(
-    modifier: Modifier = Modifier,
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = modifier
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor =
-                if (selected) color.copy(alpha = 0.15f)
-                else MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                icon,
-                null,
-                tint = if (selected) color else Color.Gray
-            )
-            Text(title)
-        }
     }
 }
 
@@ -354,7 +370,14 @@ fun CategoryBox(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val catInfo = "${category?.name} - ${category?.currentPrice}€"
+            val goalAmount = category?.goalAmount
+            val currentPrice = category?.currentPrice
+            val catInfo = if (goalAmount != null && currentPrice != null)
+                "${category?.name} - ${currentPrice.formatEuro()} / ${goalAmount.formatEuro()}"
+            else if (currentPrice != null)
+                "${category?.name} - ${currentPrice.formatEuro()}"
+            else
+                "${category?.name}"
             Column(Modifier.weight(1f)) {
                 Text(title, fontWeight = FontWeight.Bold)
                 Text(
@@ -363,58 +386,6 @@ fun CategoryBox(
             }
 
             Text(">")
-        }
-    }
-}
-
-
-@Composable
-fun CategoryPicker(
-    categories: List<CategoryEntity>,
-    onSelect: (CategoryEntity) -> Unit,
-    onDismiss: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Column(Modifier.padding(16.dp)) {
-
-            Text("Choisir une catégorie")
-
-            Spacer(Modifier.height(8.dp))
-
-            LazyColumn {
-                items(categories) { cat ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(cat) }
-                            .padding(12.dp)
-                    ) {
-                        PriceInfoCard(
-                            Translate.iconFromName(cat.iconName),
-                            Color(cat.color.toULong()),
-                            currentPrice = cat.currentPrice,
-                            futurePrice = cat.futurePrice,
-                            title = cat.name,
-                            onDelete = {
-
-                            }
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = "Fermer",
-                modifier = Modifier
-                    .clickable { onDismiss() }
-                    .padding(8.dp)
-            )
         }
     }
 }

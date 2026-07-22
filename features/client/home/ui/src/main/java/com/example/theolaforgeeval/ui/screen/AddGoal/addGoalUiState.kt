@@ -34,5 +34,10 @@ sealed class AddGoalUiAction {
 
 sealed class AddGoalUiEvent {
     data object Back : AddGoalUiEvent()
+    data class Success(
+        val playAnimation: Boolean,
+        val playSound: Boolean,
+        val playVibration: Boolean
+    ) : AddGoalUiEvent()
     data class Error(val message: String) : AddGoalUiEvent()
 }

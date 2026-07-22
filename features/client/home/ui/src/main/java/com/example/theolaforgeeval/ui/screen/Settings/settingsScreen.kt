@@ -1,5 +1,6 @@
 package com.example.theolaforgeeval.ui.screen.Settings
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,7 +21,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Coffee
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.Animation
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,9 +36,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,11 +64,22 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private const val BUY_ME_A_COFFEE_URL = "https://www.buymeacoffee.com/elmoutardes"
+
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackBarHostState = remember { SnackbarHostState() }
+    val uiState by viewModel.state.collectAsState()
+
+    val appVersionName = remember {
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        } catch (e: Exception) {
+            null
+        } ?: "—"
+    }
 
     var pendingExportContent by remember { mutableStateOf<String?>(null) }
     var pendingImportUri by remember { mutableStateOf<Uri?>(null) }
@@ -209,6 +229,114 @@ fun SettingsScreen(viewModel: SettingsViewModel, navController: NavController) {
                     Text(">")
                 }
             }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        "Retours & animations",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Text(
+                        text = "Célébrations à chaque ajout, retrait, transfert ou objectif créé.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    SettingsSwitchRow(
+                        icon = Icons.Default.Animation,
+                        label = "Animations",
+                        checked = uiState.animationsEnabled,
+                        onCheckedChange = { viewModel.onAction(OnAnimationsToggle(it)) }
+                    )
+                    SettingsSwitchRow(
+                        icon = Icons.Default.Vibration,
+                        label = "Vibrations",
+                        checked = uiState.vibrationsEnabled,
+                        onCheckedChange = { viewModel.onAction(OnVibrationsToggle(it)) }
+                    )
+                    SettingsSwitchRow(
+                        icon = Icons.Default.VolumeUp,
+                        label = "Sons",
+                        checked = uiState.soundsEnabled,
+                        onCheckedChange = { viewModel.onAction(OnSoundsToggle(it)) }
+                    )
+                }
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(BUY_ME_A_COFFEE_URL))
+                        )
+                    },
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconSquare(
+                        icon = Icons.Default.Coffee,
+                        backgroundColor = Color(0xFFFFDD00).copy(alpha = 0.18f),
+                        tint = Color(0xFFFFAA00),
+                        size = 44.dp,
+                        cornerRadius = 14.dp
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Soutenir le développeur", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Offre-moi un café sur Buy Me a Coffee ☕",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(">")
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconSquare(
+                        icon = Icons.Default.Info,
+                        backgroundColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        size = 44.dp,
+                        cornerRadius = 14.dp
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Maney", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Version $appVersionName · fait avec ❤️ par Théo L.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -229,6 +357,37 @@ fun SettingsScreen(viewModel: SettingsViewModel, navController: NavController) {
                 }
             },
             onDismiss = { pendingImportUri = null }
+        )
+    }
+}
+
+@Composable
+private fun SettingsSwitchRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(22.dp)
+        )
+        Spacer(Modifier.width(12.dp))
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
         )
     }
 }

@@ -36,5 +36,6 @@ dependencies {
     implementation(project(":features:client:home:domain"))
     implementation(project(":features:client:home:data"))
     implementation(project(":features:client:home:ui"))
+    implementation(project(":core:system"))
 
 }

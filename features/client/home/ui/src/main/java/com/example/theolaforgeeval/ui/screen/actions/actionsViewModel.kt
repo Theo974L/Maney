@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.theolaforgeeval.core.preferences.AppPreferences
 import com.example.theolaforgeeval.core.ui.utils.formatEuro
 import com.example.theolaforgeeval.model.TransactionActionEntity
 import com.example.theolaforgeeval.repository.TransactionRepository
@@ -27,7 +28,8 @@ private fun Double.toEditableString(): String =
 
 class ActionsViewModel(
     private val transactionRepository: TransactionRepository,
-    private val getCategoryTotalUseCase: GetCategoryTotalUseCase
+    private val getCategoryTotalUseCase: GetCategoryTotalUseCase,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
     private var _uiState = MutableStateFlow(ActionsUiState())
     val state: StateFlow<ActionsUiState> = _uiState
@@ -244,7 +246,13 @@ class ActionsViewModel(
                     }
                 }
             }
-            _uiEvents.send(ActionsUiEvent.Back)
+            _uiEvents.send(
+                ActionsUiEvent.Success(
+                    playAnimation = appPreferences.animationsEnabled.value,
+                    playSound = appPreferences.soundsEnabled.value,
+                    playVibration = appPreferences.vibrationsEnabled.value
+                )
+            )
         }
     }
 }

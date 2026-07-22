@@ -61,6 +61,10 @@ sealed interface ActionsUiAction {
     data object OnSave : ActionsUiAction
 }
 sealed class ActionsUiEvent {
-    data object Back : ActionsUiEvent()
+    data class Success(
+        val playAnimation: Boolean,
+        val playSound: Boolean,
+        val playVibration: Boolean
+    ) : ActionsUiEvent()
     data class Error(val message: String) : ActionsUiEvent()
 }

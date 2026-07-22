@@ -32,13 +32,15 @@ val ViewModuleModule = module {
     viewModel {
         AddGoalViewModel(
             categoryRepository = get(),
+            appPreferences = get()
         )
     }
 
     viewModel {
         ActionsViewModel(
             transactionRepository = get(),
-            getCategoryTotalUseCase = get()
+            getCategoryTotalUseCase = get(),
+            appPreferences = get()
         )
     }
 
@@ -61,7 +63,8 @@ val ViewModuleModule = module {
     viewModel {
         SettingsViewModel(
             exportDataUseCase = get(),
-            importDataUseCase = get()
+            importDataUseCase = get(),
+            appPreferences = get()
         )
     }
 

@@ -180,13 +180,13 @@ class HomeViewModel(
 
 
                 transaction.forEach { t ->
-                    if (t.dateInfo < today) {
+                    if (t.dateInfo < today && t.title != "Transfert") {
                         sumOfPrice += t.amountValue
                     }
                 }
 
                 transaction.forEach { t ->
-                    if (t.dateInfo < nowPlusSevenDay){
+                    if (t.dateInfo < nowPlusSevenDay && t.title != "Transfert"){
                         sumOfFuturePrice += t.amountValue
                     }
                 }

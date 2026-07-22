@@ -3,6 +3,7 @@ package com.example.theolaforgeeval
 import android.app.Application
 import com.example.theolaforgeeval.api.CategoryModule
 import com.example.theolaforgeeval.api.DatabaseModule
+import com.example.theolaforgeeval.api.PreferencesModule
 import com.example.theolaforgeeval.api.TransactionModule
 import com.example.theolaforgeeval.api.ViewModuleModule
 import org.koin.android.ext.koin.androidContext
@@ -20,7 +21,8 @@ class MyApp : Application() {
                 CategoryModule,
                 TransactionModule,
                 ViewModuleModule,
-                DatabaseModule
+                DatabaseModule,
+                PreferencesModule
             )
         }
     }

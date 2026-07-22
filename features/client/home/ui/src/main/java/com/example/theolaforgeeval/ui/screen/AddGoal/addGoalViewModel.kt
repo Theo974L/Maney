@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toColorLong
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.theolaforgeeval.core.preferences.AppPreferences
 import com.example.theolaforgeeval.model.CategoryEntity
 import com.example.theolaforgeeval.repository.CategoryRepository
 import com.example.theolaforgeeval.ui.utils.Translate
@@ -15,7 +16,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class AddGoalViewModel(
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val appPreferences: AppPreferences
 ) : ViewModel() {
     private var _uiState = MutableStateFlow(AddGoalUiState())
     val state: StateFlow<AddGoalUiState> = _uiState
@@ -113,6 +115,7 @@ class AddGoalViewModel(
                             imagePath = current.imagePath
                         )
                     )
+                    _uiEvents.send(AddGoalUiEvent.Back)
                 } else {
                     categoryRepository.insertCategories(
                         CategoryEntity(
@@ -126,9 +129,14 @@ class AddGoalViewModel(
                             imagePath = current.imagePath
                         )
                     )
+                    _uiEvents.send(
+                        AddGoalUiEvent.Success(
+                            playAnimation = appPreferences.animationsEnabled.value,
+                            playSound = appPreferences.soundsEnabled.value,
+                            playVibration = appPreferences.vibrationsEnabled.value
+                        )
+                    )
                 }
-
-                _uiEvents.send(AddGoalUiEvent.Back)
 
             } catch (e: Exception) {
                 _uiEvents.send(
